@@ -116,7 +116,6 @@ class SnakeGame:
             snake.draw()
             fruit.draw()
             clock.tick(7)
-            test = 0
         
         pygame.quit()
         quit()
