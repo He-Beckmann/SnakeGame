@@ -1,6 +1,7 @@
 import pygame;
 import time;
 import copy
+from threading import Thread
 
 class Snake:
     
@@ -70,53 +71,43 @@ class Rectangle(Figur):
         
     def collision(self, x, y):
         return (self.x <= x and self.x + self.width >= x and self.y <= y and self.y + self.height >= y)
-
         
 
 class SnakeGame:
     
     def __init__(self, width):
         height = width
-        
+        x = 0
+        y = 0
         pygame.init()
-        
+        eventHandler = Thread(target=self.handleEvents)
+        eventHandler.setDaemon(True)
+        eventHandler.start()
         colors = self.defineColors()
         background = colors['white']
         screen = self.initalizeScreen(width, height, background)
-        snakeLength = width / 20
+        self.snakeLength = width / 20
+        # Initalize Snake Object
+        rect = Rectangle(screen, x, y, colors['blue'], self.snakeLength-1, self.snakeLength-1)
+        self.snake  = Snake(rect)
         header = pygame.display.set_caption('Snake')
-        fruit = Fruit(screen, 500, 500, colors['red'], snakeLength / 2)
-        x = 0
-        y = 0
-        rect = Rectangle(screen, x, y, colors['blue'], snakeLength-1, snakeLength-1)
-        snake  = Snake(rect)
-        y1_change = 0
-        x1_change = 0
+        fruit = Fruit(screen, 500, 500, colors['red'], self.snakeLength / 2)
+        
+        self.y1_change = 0
+        self.x1_change = 0
         game_over = False
         clock = pygame.time.Clock()
+        pause = False
         while not game_over:
-            for event in pygame.event.get():
-                if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_LEFT and x1_change == 0:
-                        x1_change = -snakeLength
-                        y1_change = 0
-                    elif event.key == pygame.K_RIGHT and x1_change == 0:
-                        x1_change = snakeLength
-                        y1_change = 0
-                    elif event.key == pygame.K_UP and y1_change == 0:
-                        y1_change = -snakeLength
-                        x1_change = 0
-                    elif event.key == pygame.K_DOWN and y1_change == 0:
-                        y1_change = snakeLength
-                        x1_change = 0
-            pygame.display.update()
+            pygame.display.update()            
             screen.fill(colors['white'])
-            snake.collision(fruit.x, fruit.y)
-            snake.move(x1_change, y1_change)
-            snake.draw()
+            
+            self.snake.collision(fruit.x, fruit.y)
+            self.snake.move(self.x1_change, self.y1_change)
+            self.snake.draw()
             fruit.draw()
             clock.tick(7)
-        
+
         pygame.quit()
         quit()
         
@@ -126,6 +117,36 @@ class SnakeGame:
         screen.fill(background)
         
         return screen
+    
+    def handleEvents(self):
+        while True:
+            for event in pygame.event.get():
+                    if event.type == pygame.KEYDOWN:
+                        if event.key == pygame.K_LEFT:
+                            self.x1_change = -self.snakeLength
+                            self.y1_change = 0
+                        elif event.key == pygame.K_RIGHT:
+                            self.x1_change = self.snakeLength
+                            self.y1_change = 0
+                        elif event.key == pygame.K_UP:
+                            self.y1_change = -self.snakeLength
+                            self.x1_change = 0
+                        elif event.key == pygame.K_DOWN:
+                            self.y1_change = self.snakeLength
+                            self.x1_change = 0
+                        # elif event.key == pygame.K_SPACE:
+                        #     self.pause = True
+        
+    
+    def getFruitPos(self):
+        x = random.randint(0, 9) * self.snakeLength
+        y = random.randint(0, 9) * self.snakeLength
+        for body in self.snake.bodies:
+            if body.x == x and body.y == y:
+                self.getFruitPos()
+        return (x,y)
+    
+        
     
     def drawFruit(self, screen, color, radius):
         return pygame.draw.circle(screen,color,[500,500], 20)
