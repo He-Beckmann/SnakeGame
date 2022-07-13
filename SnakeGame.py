@@ -1,6 +1,7 @@
 import pygame;
 import time;
 import copy
+import random
 
 class Snake:
     
@@ -18,7 +19,7 @@ class Snake:
     
     def move(self, x, y):
         body = self.bodies[len(self.bodies)-1].__copy__()
-        body.move((x, y))
+        body.move(x, y)
         self.bodies.append(body)
         if(len(self.bodies) > self.length):
             self.bodies.pop(0)
@@ -26,6 +27,8 @@ class Snake:
     def collision(self, x, y):
         if(self.bodies[-1].collision(x, y)):
             self.grow()
+            return True
+        return False
             
     def selfCollision(self):
         headX = self.bodies[-1].x
@@ -39,33 +42,35 @@ class Snake:
 
 class Figur:
     
-    def __init__(self, screen, pos, color):
+    def __init__(self, screen, x, y, color):
         self.screen = screen
-        self.pos = pos
+        self.x      = x
+        self.y      = y
         self.color  = color
         
     def draw(self):
         pass
     
-    def setPosition(self, pos):
-        self.pos  = pos
-        
-    def move(self, pos):
-        self.pos += pos
+    def setPosition(self, x, y):
+        self.x = x
+        self.y = y
+    def move(self, x, y):
+        self.x += x
+        self.y += y
     
 class Fruit(Figur):
     
-    def __init__(self, screen, pos, color, radius):
-        super().__init__(screen, pos, color)
+    def __init__(self, screen, x, y, color, radius):
+        super().__init__(screen, x, y, color)
         self.radius = radius
         
     def draw(self):
-        pygame.draw.circle(self.screen,self.color, self.pos, self.radius)
+        pygame.draw.circle(self.screen,self.color,[self.x,self.y], self.radius)
         
 class Rectangle(Figur):
     
-    def __init__(self, screen, pos, color, width, height):
-        super().__init__(screen, pos, color)
+    def __init__(self, screen, x, y, color, width, height):
+        super().__init__(screen, x, y, color)
         self.width  = width
         self.height = height
         
@@ -83,24 +88,25 @@ class SnakeGame:
     
     def __init__(self, width):
         height = width
-        startPos = 0, 0
+        startX = width / 2
+        startY = height / 2
         pygame.init()
         self.colors = self.defineColors()
         background = self.colors['white']
         self.screen = self.initalizeScreen(width, height, background)
         self.snakeLength = width / 20
         # Initalize Snake Object
-        rect = Rectangle(self.screen, startPos, self.colors['blue'], self.snakeLength-1, self.snakeLength-1)
+        rect = Rectangle(self.screen, startX, startY, self.colors['blue'], self.snakeLength-1, self.snakeLength-1)
         self.snake  = Snake(rect)
         header = pygame.display.set_caption('Snake')
-        self.fruit = Fruit(self.screen, (500, 500), self.colors['red'], self.snakeLength / 2)
+        self.fruit = Fruit(self.screen, 500, 500, self.colors['red'], self.snakeLength / 2)
         
         self.y1_change = 0
         self.x1_change = 0
 
         self.gameLoop()
         
-        self.gameOver(self.colors, clock)
+        self.gameOver(self.colors)
         pygame.quit()
         quit()
         
@@ -127,7 +133,9 @@ class SnakeGame:
                         self.x1_change = 0
                     # elif event.key == pygame.K_SPACE:
                     #     self.pause = True
-            self.snake.collision(self.fruit.x, self.fruit.y)
+            if self.snake.collision(self.fruit.x, self.fruit.y):
+                pos = self.nextFruitPos()
+                self.fruit.setPosition(pos[0], pos[1])
             self.snake.move(self.x1_change, self.y1_change)
             if self.snake.selfCollision():
                 game_over = True
@@ -142,7 +150,7 @@ class SnakeGame:
         
         return screen
     
-    def gameOver(self, colors, clock):
+    def gameOver(self, colors):
         self.screen.fill(colors['white'])
         my_font = pygame.font.Font('DAYPBL__.ttf', 60)
         text_surface = my_font.render('GAME OVER', False, (0, 0, 0))
@@ -156,9 +164,11 @@ class SnakeGame:
                     wait = False
                     
     
-    def getFruitPos(self):
-        x = random.randint(0, 9) * self.snakeLength
-        y = random.randint(0, 9) * self.snakeLength
+    def nextFruitPos(self):
+        x = random.randint(1, 19) * self.snakeLength - self.snakeLength / 2
+        y = random.randint(1, 19) * self.snakeLength - self.snakeLength / 2
+        print(x)
+        print(y)
         for body in self.snake.bodies:
             if body.x == x and body.y == y:
                 self.getFruitPos()
