@@ -87,6 +87,7 @@ class Rectangle(Figur):
 class SnakeGame:
     
     def __init__(self, width):
+        self.score = 0
         height = width
         startX = width / 2
         startY = height / 2
@@ -103,7 +104,7 @@ class SnakeGame:
         
         self.y1_change = 0
         self.x1_change = 0
-
+        self.mainMenu()
         self.gameLoop()
         
         self.gameOver(self.colors)
@@ -113,34 +114,46 @@ class SnakeGame:
     def gameLoop(self):
         game_over = False
         pause = False
+        prevDirection = ''
+        direction = ''
         clock = pygame.time.Clock()
         while not game_over:
             pygame.display.update()            
             self.screen.fill(self.colors['white'])
+            print(prevDirection)
             for event in pygame.event.get():
                 if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_LEFT:
+                    if event.key == pygame.K_LEFT and prevDirection != 'right':
                         self.x1_change = -self.snakeLength
                         self.y1_change = 0
-                    elif event.key == pygame.K_RIGHT:
+                        direction = 'left'
+                    elif event.key == pygame.K_RIGHT and prevDirection != 'left':
                         self.x1_change = self.snakeLength
                         self.y1_change = 0
-                    elif event.key == pygame.K_UP:
+                        direction = 'right'
+                    elif event.key == pygame.K_UP and prevDirection != 'down':
                         self.y1_change = -self.snakeLength
                         self.x1_change = 0
-                    elif event.key == pygame.K_DOWN:
+                        direction = 'up'
+                    elif event.key == pygame.K_DOWN and prevDirection != 'up':
                         self.y1_change = self.snakeLength
                         self.x1_change = 0
+                        direction = 'down'
                     # elif event.key == pygame.K_SPACE:
                     #     self.pause = True
             if self.snake.collision(self.fruit.x, self.fruit.y):
                 pos = self.nextFruitPos()
                 self.fruit.setPosition(pos[0], pos[1])
+                self.score += 100
             self.snake.move(self.x1_change, self.y1_change)
+            if self.score > 0:
+                self.score -= 1
+            prevDirection = direction
             if self.snake.selfCollision():
                 game_over = True
             self.snake.draw()
             self.fruit.draw()
+            self.updateScore()
             clock.tick(7)
         
     def initalizeScreen(self,width , height, background):
@@ -149,6 +162,29 @@ class SnakeGame:
         screen.fill(background)
         
         return screen
+    
+    def updateScore(self):
+        my_font = pygame.font.Font('DAYPBL__.ttf', 30)
+        text_surface = my_font.render(str(self.score), False, (0, 0, 0))
+        self.screen.blit(text_surface, (700, 10))
+    
+    
+    def mainMenu(self):
+        self.screen.fill(self.colors['white'])
+        my_font = pygame.font.Font('DAYPBL__.ttf', 40)
+        start_text = my_font.render('START', False,self.colors['white'])
+        quit_text = my_font.render('QUIT', False, (0, 0, 0))
+        size = self.screen.get_size()
+        startButton = Rectangle(self.screen, size[0] / 4, size[0] / 4, self.colors['black'], 200, 100)
+        startButton.draw()
+        self.screen.blit(start_text, (size[0] / 3, size[1]/3))
+        self.screen.blit(quit_text, (size[0] / 3, size[1]/2))
+        pygame.display.update()
+        wait = True
+        while wait:
+            for event in pygame.event.get():
+                if event.type == pygame.KEYDOWN:
+                    wait = False
     
     def gameOver(self, colors):
         self.screen.fill(colors['white'])
@@ -165,14 +201,12 @@ class SnakeGame:
                     
     
     def nextFruitPos(self):
-        x = random.randint(1, 19) * self.snakeLength - self.snakeLength / 2
-        y = random.randint(1, 19) * self.snakeLength - self.snakeLength / 2
-        print(x)
-        print(y)
+        x = random.randint(0, 19) * self.snakeLength
+        y = random.randint(0, 19) * self.snakeLength
         for body in self.snake.bodies:
             if body.x == x and body.y == y:
-                self.getFruitPos()
-        return (x,y)
+                self.nextFruitPos()
+        return (x - self.snakeLength / 2 ,y - self.snakeLength / 2)
     
         
     
