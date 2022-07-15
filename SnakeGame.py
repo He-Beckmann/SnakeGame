@@ -41,49 +41,7 @@ class Snake:
         return False
         
 
-class Figur:
-    
-    def __init__(self, screen, x, y, color):
-        self.screen = screen
-        self.x      = x
-        self.y      = y
-        self.color  = color
-        
-    def draw(self):
-        pass
-    
-    def setPosition(self, x, y):
-        self.x = x
-        self.y = y
-        
-    def move(self, x, y):
-        self.x += x
-        self.y += y
-    
-class Fruit(Figur):
-    
-    def __init__(self, screen, x, y, color, radius):
-        super().__init__(screen, x, y, color)
-        self.radius = radius
-        
-    def draw(self):
-        pygame.draw.circle(self.screen,self.color,[self.x,self.y], self.radius)
-        
-class Rectangle(Figur):
-    
-    def __init__(self, screen, x, y, color, width, height):
-        super().__init__(screen, x, y, color)
-        self.width  = width
-        self.height = height
-        
-    def __copy__(self):
-        return type(self)(self.screen, self.x, self.y, self.color, self.width, self.height)
-        
-    def draw(self):
-        pygame.draw.rect(self.screen,self.color,(self.x,self.y , self.width, self.height))
-        
-    def collision(self, x, y):
-        return (self.x <= x and self.x + self.width >= x and self.y <= y and self.y + self.height >= y)
+
         
 
 class SnakeGame:
@@ -127,6 +85,7 @@ class SnakeGame:
         direction = ''
         y1_change = 0
         x1_change = 0
+        
         clock = pygame.time.Clock()
         while not game_over:
             pygame.display.update()            
@@ -153,7 +112,7 @@ class SnakeGame:
                     #     self.pause = True
                     
             #Checks whether the snake collected a fruit
-            #If true -> increase score by 100 and spawn new fruit
+            #If true, then increase score by 100 and spawn new fruit
             if self.snake.collision(self.fruit.x, self.fruit.y):
                 pos = self.nextFruitPos()
                 self.fruit.setPosition(pos[0], pos[1])
@@ -161,7 +120,7 @@ class SnakeGame:
             
             self.snake.move(x1_change, y1_change)
             
-            #Decreases score by 1 for each move
+            #Decreases score by 1 each move
             if self.score > 0:
                 self.score -= 1
             prevDirection = direction
