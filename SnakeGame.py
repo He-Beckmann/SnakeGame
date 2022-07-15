@@ -54,6 +54,7 @@ class Figur:
     def setPosition(self, x, y):
         self.x = x
         self.y = y
+        
     def move(self, x, y):
         self.x += x
         self.y += y
@@ -87,6 +88,10 @@ class Rectangle(Figur):
 class SnakeGame:
     
     def __init__(self, width):
+        
+        #Initalize Class Variables
+        
+        #Initalize instance variables 
         self.score = 0
         height = width
         startX = width / 2
@@ -141,11 +146,17 @@ class SnakeGame:
                         direction = 'down'
                     # elif event.key == pygame.K_SPACE:
                     #     self.pause = True
+                    
+            #Checks whether the snake collected a fruit
+            #If true -> increase score by 100
             if self.snake.collision(self.fruit.x, self.fruit.y):
                 pos = self.nextFruitPos()
                 self.fruit.setPosition(pos[0], pos[1])
                 self.score += 100
+            
             self.snake.move(self.x1_change, self.y1_change)
+            
+            #Decreases score by 1 for each move
             if self.score > 0:
                 self.score -= 1
             prevDirection = direction
@@ -164,6 +175,7 @@ class SnakeGame:
         return screen
     
     def updateScore(self):
+        #Updates Score Text
         my_font = pygame.font.Font('DAYPBL__.ttf', 30)
         text_surface = my_font.render(str(self.score), False, (0, 0, 0))
         self.screen.blit(text_surface, (700, 10))
