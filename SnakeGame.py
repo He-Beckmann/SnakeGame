@@ -9,7 +9,8 @@ class Snake:
         self.bodies = []
         self.bodies.append(rectangle)
         self.length = 1
-        
+    
+    #Increse size of the snake by 1 
     def grow(self):
         self.length += 1
         
@@ -23,7 +24,7 @@ class Snake:
         self.bodies.append(body)
         if(len(self.bodies) > self.length):
             self.bodies.pop(0)
-            
+        
     def collision(self, x, y):
         if(self.bodies[-1].collision(x, y)):
             self.grow()
@@ -87,31 +88,34 @@ class Rectangle(Figur):
 
 class SnakeGame:
     
-    def __init__(self, width):
-        
-        #Initalize Class Variables
-        
+    
+    def __init__(self, width, height):     
         #Initalize instance variables 
         self.score = 0
-        height = width
-        startX = width / 2
-        startY = height / 2
-        pygame.init()
+        self.fieldWidth = width / 20
+        self.width = width
+        self.height = height
         self.colors = self.defineColors()
         background = self.colors['white']
-        self.screen = self.initalizeScreen(width, height, background)
-        self.snakeLength = width / 20
+        self.screen = self.initalizeScreen(background)
+        
+        pygame.init()
+
+        
+        #Defines starting postiti
+        startX = width / 2
+        startY = height / 2
         # Initalize Snake Object
-        rect = Rectangle(self.screen, startX, startY, self.colors['blue'], self.snakeLength-1, self.snakeLength-1)
+        rect = Rectangle(self.screen, startX, startY, self.colors['blue'], self.fieldWidth-1, self.fieldWidth-1)
         self.snake  = Snake(rect)
         header = pygame.display.set_caption('Snake')
-        self.fruit = Fruit(self.screen, 500, 500, self.colors['red'], self.snakeLength / 2)
+        self.fruit = Fruit(self.screen, 500, 500, self.colors['red'], self.fieldWidth / 2)
         
-        self.y1_change = 0
-        self.x1_change = 0
+        #Displays main menu screen
         self.mainMenu()
+        #Starts SnakeGame
         self.gameLoop()
-        
+        #Displays game over screen
         self.gameOver(self.colors)
         pygame.quit()
         quit()
@@ -121,54 +125,57 @@ class SnakeGame:
         pause = False
         prevDirection = ''
         direction = ''
+        y1_change = 0
+        x1_change = 0
         clock = pygame.time.Clock()
         while not game_over:
             pygame.display.update()            
             self.screen.fill(self.colors['white'])
-            print(prevDirection)
             for event in pygame.event.get():
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_LEFT and prevDirection != 'right':
-                        self.x1_change = -self.snakeLength
-                        self.y1_change = 0
+                        x1_change = -self.fieldWidth
+                        y1_change = 0
                         direction = 'left'
                     elif event.key == pygame.K_RIGHT and prevDirection != 'left':
-                        self.x1_change = self.snakeLength
-                        self.y1_change = 0
+                        x1_change = self.fieldWidth
+                        y1_change = 0
                         direction = 'right'
                     elif event.key == pygame.K_UP and prevDirection != 'down':
-                        self.y1_change = -self.snakeLength
-                        self.x1_change = 0
+                        y1_change = -self.fieldWidth
+                        x1_change = 0
                         direction = 'up'
                     elif event.key == pygame.K_DOWN and prevDirection != 'up':
-                        self.y1_change = self.snakeLength
-                        self.x1_change = 0
+                        y1_change = self.fieldWidth
+                        x1_change = 0
                         direction = 'down'
                     # elif event.key == pygame.K_SPACE:
                     #     self.pause = True
                     
             #Checks whether the snake collected a fruit
-            #If true -> increase score by 100
+            #If true -> increase score by 100 and spawn new fruit
             if self.snake.collision(self.fruit.x, self.fruit.y):
                 pos = self.nextFruitPos()
                 self.fruit.setPosition(pos[0], pos[1])
                 self.score += 100
             
-            self.snake.move(self.x1_change, self.y1_change)
+            self.snake.move(x1_change, y1_change)
             
             #Decreases score by 1 for each move
             if self.score > 0:
                 self.score -= 1
             prevDirection = direction
+            
+            #Checks whether game is over
             if self.snake.selfCollision():
                 game_over = True
             self.snake.draw()
             self.fruit.draw()
             self.updateScore()
-            clock.tick(7)
+            clock.tick(10)
         
-    def initalizeScreen(self,width , height, background):
-        size = width, height
+    def initalizeScreen(self,background):
+        size = self.width, self.height
         screen = pygame.display.set_mode(size)
         screen.fill(background)
         
@@ -195,7 +202,8 @@ class SnakeGame:
         wait = True
         while wait:
             for event in pygame.event.get():
-                if event.type == pygame.KEYDOWN:
+                if event.type == pygame.MOUSEBUTTONUP:
+                    pos = pygame.mouse.get_pos()
                     wait = False
     
     def gameOver(self, colors):
@@ -213,12 +221,12 @@ class SnakeGame:
                     
     
     def nextFruitPos(self):
-        x = random.randint(0, 19) * self.snakeLength
-        y = random.randint(0, 19) * self.snakeLength
+        x = random.randint(0, 19) * self.fieldWidth
+        y = random.randint(0, 19) * self.fieldWidth
         for body in self.snake.bodies:
             if body.x == x and body.y == y:
                 self.nextFruitPos()
-        return (x - self.snakeLength / 2 ,y - self.snakeLength / 2)
+        return (x - self.fieldWidth / 2 ,y - self.fieldWidth / 2)
     
         
     
@@ -235,4 +243,4 @@ class SnakeGame:
         }
         return colors
     
-SnakeGame(800)
+SnakeGame(800, 800)
